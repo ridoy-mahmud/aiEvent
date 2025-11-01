@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+MIGRATION_GUIDE.md
+MONGODB_SETUP.md
+BACKEND_SETUP.md
+TROUBLESHOOTING.md
