@@ -17,9 +17,9 @@ export async function POST(request: NextRequest) {
     }
 
     const userResponse = user.toObject();
-    delete userResponse.password;
+    const { password: _, ...userWithoutPassword } = userResponse;
 
-    return NextResponse.json({ success: true, data: userResponse }, { status: 200 });
+    return NextResponse.json({ success: true, data: userWithoutPassword }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: error.message },

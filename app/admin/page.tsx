@@ -206,7 +206,7 @@ export default function AdminDashboard() {
           (regUser: any) =>
             (typeof regUser === "string"
               ? regUser
-              : regUser._id || regUser.id) === (user._id || user.id)
+              : regUser._id || regUser.id) === (user._id || (user as any).id)
         )
       ).length;
       return [
@@ -870,7 +870,7 @@ export default function AdminDashboard() {
                       (regUser: any) =>
                         (typeof regUser === "string"
                           ? regUser
-                          : regUser._id || regUser.id) === (user._id || user.id)
+                          : regUser._id || regUser.id) === (user._id || (user as any).id)
                     )
                   ).length;
                   return (

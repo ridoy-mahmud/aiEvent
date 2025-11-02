@@ -3,7 +3,11 @@ import axios from 'axios';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase/config';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+// Use Next.js API routes in production (Vercel), Express server in development
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
+    ? 'http://localhost:5000/api' 
+    : '/api');
 
 interface User {
   id: string;

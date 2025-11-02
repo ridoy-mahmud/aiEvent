@@ -24,11 +24,16 @@ const nextConfig: NextConfig = {
         hostname: 'logo.clearbit.com',
       },
     ],
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60,
   },
   // Ensure API routes don't interfere with Express server
   async rewrites() {
     return [];
   },
+  // Optimize production builds
+  compress: true,
+  poweredByHeader: false,
 };
 
 export default nextConfig;

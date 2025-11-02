@@ -1,7 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+// Use Next.js API routes in production (Vercel), Express server in development
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
+    ? 'http://localhost:5000/api' 
+    : '/api');
 
 interface User {
   _id: string;

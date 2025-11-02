@@ -22,18 +22,25 @@ export default function ChatBot() {
   const { user } = useAppSelector((state) => state.auth);
   const { events } = useAppSelector((state) => state.events);
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      text: "Hello! I'm your AI Events assistant. I can help you with registration, login, event information, categories, dates, and much more! How can I assist you today?",
-      sender: "bot",
-      timestamp: new Date(),
-    },
-  ]);
+  const [mounted, setMounted] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize messages on client-side only to prevent hydration errors
+  useEffect(() => {
+    setMounted(true);
+    setMessages([
+      {
+        id: "1",
+        text: "Hello! I'm your AI Events assistant. I can help you with registration, login, event information, categories, dates, and much more! How can I assist you today?",
+        sender: "bot",
+        timestamp: new Date(),
+      },
+    ]);
+  }, []);
 
   const suggestedQuestions: SuggestedQuestion[] = [
     { id: "1", text: "How do I register for events?", icon: <Calendar className="w-4 h-4" /> },
@@ -53,6 +60,10 @@ export default function ChatBot() {
   }, [messages]);
 
   const generateResponse = async (userMessage: string): Promise<string> => {
+    // Ensure userMessage is a string
+    if (typeof userMessage !== 'string') {
+      return "I'm sorry, I didn't understand that. Could you please try again?";
+    }
     const message = userMessage.toLowerCase();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -233,8 +244,14 @@ export default function ChatBot() {
   };
 
   const handleSend = async (messageText?: string) => {
-    const textToSend = messageText || input.trim();
+    // Ensure we're working with a string, not an event object
+    const textToSend = typeof messageText === 'string' ? messageText : input.trim();
     if (!textToSend || loading) return;
+    
+    // Additional validation - ensure it's actually a string
+    if (typeof textToSend !== 'string') {
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -243,25 +260,101 @@ export default function ChatBot() {
       timestamp: new Date(),
     };
 
+    // Prepare conversation history BEFORE adding new message
+    const conversationHistory = messages.slice(-10).map(msg => ({
+      sender: msg.sender,
+      text: msg.text
+    }));
+
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setShowSuggestions(false);
     setLoading(true);
 
-    // Simulate AI processing
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
 
-    const botResponse = await generateResponse(textToSend);
+      // Call OpenAI API via our API route
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: textToSend,
+          conversationHistory: conversationHistory,
+          userInfo: user ? {
+            name: user.name,
+            email: user.email,
+            role: user.role
+          } : null,
+          eventsInfo: events.length > 0 ? events.map(e => ({
+            title: e.title,
+            category: e.category,
+            date: e.date,
+            location: e.location,
+            description: e.description
+          })) : [],
+        }),
+      });
 
-    const botMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      text: botResponse,
-      sender: "bot",
-      timestamp: new Date(),
-    };
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Chat API error:', errorData);
+        // Fallback to local response if API fails
+        const botResponse = await generateResponse(textToSend);
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: botResponse,
+          sender: "bot",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+        setLoading(false);
+        return;
+      }
 
-    setMessages((prev) => [...prev, botMessage]);
-    setLoading(false);
+      const data = await response.json();
+      
+      // Check if there's an error in the response
+      if (data.error) {
+        console.error('Chat API error:', data.error);
+        // Fallback to local response
+        const botResponse = await generateResponse(textToSend);
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: botResponse,
+          sender: "bot",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+        setLoading(false);
+        return;
+      }
+
+      const botResponse = data.message || await generateResponse(textToSend);
+
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: botResponse,
+        sender: "bot",
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      // Fallback to local response if API fails
+      const botResponse = await generateResponse(textToSend);
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: botResponse,
+        sender: "bot",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, botMessage]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSuggestionClick = (question: string) => {
@@ -274,6 +367,11 @@ export default function ChatBot() {
       handleSend();
     }
   };
+
+  // Don't render until mounted to prevent hydration errors
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <>
@@ -290,7 +388,7 @@ export default function ChatBot() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-dark-100 border border-dark-200 rounded-lg shadow-2xl z-50 flex flex-col glass">
+        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-dark-100 border border-dark-200 rounded-lg shadow-2xl z-50 flex flex-col" style={{ backgroundColor: 'rgba(13, 22, 26, 1)', backdropFilter: 'none' }}>
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-dark-200">
             <div className="flex items-center gap-3">
@@ -385,7 +483,7 @@ export default function ChatBot() {
                 className="flex-1 bg-dark-200 border border-dark-200 rounded-lg px-4 py-2 text-white placeholder-light-200 focus:outline-none focus:border-primary transition-colors"
               />
               <button
-                onClick={handleSend}
+                onClick={() => handleSend()}
                 disabled={!input.trim() || loading}
                 className="bg-primary hover:bg-primary/90 text-black p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >

@@ -40,10 +40,10 @@ export async function POST(request: NextRequest) {
     });
 
     const userResponse = user.toObject();
-    delete userResponse.password;
+    const { password: _, ...userWithoutPassword } = userResponse;
 
     return NextResponse.json(
-      { success: true, data: userResponse },
+      { success: true, data: userWithoutPassword },
       { status: 201 }
     );
   } catch (error: any) {

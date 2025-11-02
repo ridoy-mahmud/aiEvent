@@ -6,12 +6,13 @@ import mongoose from 'mongoose';
 // POST - Register user for event
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await params;
     
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { success: false, error: 'Invalid event ID' },
         { status: 400 }
@@ -27,7 +28,7 @@ export async function POST(
       );
     }
 
-    const event = await Event.findById(params.id);
+    const event = await Event.findById(id);
     if (!event) {
       return NextResponse.json(
         { success: false, error: 'Event not found' },
@@ -74,12 +75,13 @@ export async function POST(
 // DELETE - Unregister user from event
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await params;
     
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { success: false, error: 'Invalid event ID' },
         { status: 400 }
@@ -96,7 +98,7 @@ export async function DELETE(
       );
     }
 
-    const event = await Event.findById(params.id);
+    const event = await Event.findById(id);
     if (!event) {
       return NextResponse.json(
         { success: false, error: 'Event not found' },

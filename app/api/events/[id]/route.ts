@@ -6,19 +6,20 @@ import mongoose from 'mongoose';
 // GET - Get event by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await params;
     
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { success: false, error: 'Invalid event ID' },
         { status: 400 }
       );
     }
 
-    const event = await Event.findById(params.id)
+    const event = await Event.findById(id)
       .populate('createdBy', 'name email')
       .populate('registeredUsers', 'name email');
 
@@ -41,12 +42,13 @@ export async function GET(
 // PUT - Update event
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await params;
     
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { success: false, error: 'Invalid event ID' },
         { status: 400 }
@@ -55,7 +57,7 @@ export async function PUT(
 
     const body = await request.json();
     const event = await Event.findByIdAndUpdate(
-      params.id,
+      id,
       body,
       { new: true, runValidators: true }
     )
@@ -81,19 +83,20 @@ export async function PUT(
 // DELETE - Delete event
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await params;
     
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { success: false, error: 'Invalid event ID' },
         { status: 400 }
       );
     }
 
-    const event = await Event.findByIdAndDelete(params.id);
+    const event = await Event.findByIdAndDelete(id);
     if (!event) {
       return NextResponse.json(
         { success: false, error: 'Event not found' },

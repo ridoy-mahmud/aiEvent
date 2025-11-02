@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/lib/store/hooks";
 import { PageLoader } from "./Loader";
@@ -12,17 +12,25 @@ interface AuthGuardProps {
 export default function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter();
   const { isAuthenticated, loading } = useAppSelector((state) => state.auth);
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
+    if (mounted && !loading && !isAuthenticated) {
       router.push("/login");
     }
-  }, [isAuthenticated, loading, router]);
+  }, [mounted, isAuthenticated, loading, router]);
 
-  if (loading) {
+  // Show loader on initial mount or while loading
+  if (!mounted || loading) {
     return <PageLoader />;
   }
 
+  // Show nothing if not authenticated (redirect is happening)
   if (!isAuthenticated) {
     return null;
   }

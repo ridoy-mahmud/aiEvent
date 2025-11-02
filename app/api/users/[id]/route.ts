@@ -6,19 +6,20 @@ import mongoose from 'mongoose';
 // GET - Get user by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await params;
     
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { success: false, error: 'Invalid user ID' },
         { status: 400 }
       );
     }
 
-    const user = await User.findById(params.id).select('-password');
+    const user = await User.findById(id).select('-password');
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
@@ -38,12 +39,13 @@ export async function GET(
 // PUT - Update user
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await params;
     
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { success: false, error: 'Invalid user ID' },
         { status: 400 }
@@ -60,7 +62,7 @@ export async function PUT(
 
     // Check if email is being changed and already exists
     if (email) {
-      const existingUser = await User.findOne({ email, _id: { $ne: params.id } });
+      const existingUser = await User.findOne({ email, _id: { $ne: id } });
       if (existingUser) {
         return NextResponse.json(
           { success: false, error: 'Email already in use' },
@@ -70,7 +72,7 @@ export async function PUT(
     }
 
     const user = await User.findByIdAndUpdate(
-      params.id,
+      id,
       updateData,
       { new: true, runValidators: true }
     ).select('-password');
@@ -94,19 +96,20 @@ export async function PUT(
 // DELETE - Delete user
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
+    const { id } = await params;
     
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { success: false, error: 'Invalid user ID' },
         { status: 400 }
       );
     }
 
-    const user = await User.findByIdAndDelete(params.id);
+    const user = await User.findByIdAndDelete(id);
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
