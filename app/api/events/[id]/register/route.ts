@@ -40,9 +40,10 @@ export async function POST(
     }
 
     // Verify token and get user ID
-    let decoded: { id: string };
+    let decoded: any;
     try {
-      decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+      decoded = jwt.verify(token, JWT_SECRET);
+      console.log('JWT Decoded:', decoded);
     } catch (jwtError: any) {
       console.error('JWT Verification Error:', jwtError.message);
       return NextResponse.json(
@@ -51,9 +52,22 @@ export async function POST(
       );
     }
 
-    const userId = decoded.id;
+    // Handle both { id: string } and { _id: string } formats
+    const userId = decoded.id || decoded._id;
 
-    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    if (!userId) {
+      console.error('No user ID found in token. Decoded:', decoded);
+      return NextResponse.json(
+        { success: false, error: 'Valid user ID is required in token' },
+        { status: 400 }
+      );
+    }
+
+    // Convert to string if it's an ObjectId
+    const userIdString = typeof userId === 'string' ? userId : userId.toString();
+
+    if (!mongoose.Types.ObjectId.isValid(userIdString)) {
+      console.error('Invalid user ID format:', userIdString);
       return NextResponse.json(
         { success: false, error: 'Valid user ID is required' },
         { status: 400 }
@@ -69,7 +83,7 @@ export async function POST(
     }
 
     // Check if already registered
-    if (event.registeredUsers.includes(new mongoose.Types.ObjectId(userId))) {
+    if (event.registeredUsers.includes(new mongoose.Types.ObjectId(userIdString))) {
       return NextResponse.json(
         { success: false, error: 'User already registered for this event' },
         { status: 400 }
@@ -85,7 +99,7 @@ export async function POST(
     }
 
     // Add user to registeredUsers
-    event.registeredUsers.push(new mongoose.Types.ObjectId(userId));
+    event.registeredUsers.push(new mongoose.Types.ObjectId(userIdString));
     await event.save();
 
     const populatedEvent = await Event.findById(event._id)
@@ -138,9 +152,10 @@ export async function DELETE(
     }
 
     // Verify token and get user ID
-    let decoded: { id: string };
+    let decoded: any;
     try {
-      decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+      decoded = jwt.verify(token, JWT_SECRET);
+      console.log('JWT Decoded (DELETE):', decoded);
     } catch (jwtError: any) {
       console.error('JWT Verification Error:', jwtError.message);
       return NextResponse.json(
@@ -149,9 +164,22 @@ export async function DELETE(
       );
     }
 
-    const userId = decoded.id;
+    // Handle both { id: string } and { _id: string } formats
+    const userId = decoded.id || decoded._id;
 
-    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    if (!userId) {
+      console.error('No user ID found in token. Decoded:', decoded);
+      return NextResponse.json(
+        { success: false, error: 'Valid user ID is required in token' },
+        { status: 400 }
+      );
+    }
+
+    // Convert to string if it's an ObjectId
+    const userIdString = typeof userId === 'string' ? userId : userId.toString();
+
+    if (!mongoose.Types.ObjectId.isValid(userIdString)) {
+      console.error('Invalid user ID format:', userIdString);
       return NextResponse.json(
         { success: false, error: 'Valid user ID is required' },
         { status: 400 }
@@ -169,7 +197,7 @@ export async function DELETE(
 
     // Remove user from registeredUsers
     event.registeredUsers = event.registeredUsers.filter(
-      (regUserId) => regUserId.toString() !== userId
+      (regUserId) => regUserId.toString() !== userIdString
     );
     await event.save();
 
