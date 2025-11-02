@@ -10,8 +10,8 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
     
-    // Get token from Authorization header
-    const authHeader = request.headers.get('authorization');
+    // Get token from Authorization header (case-insensitive)
+    const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
         { success: false, error: 'Not authorized to access this route' },
@@ -21,8 +21,24 @@ export async function GET(request: NextRequest) {
 
     const token = authHeader.split(' ')[1];
 
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: 'No token provided' },
+        { status: 401 }
+      );
+    }
+
     // Verify token
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+    let decoded: { id: string };
+    try {
+      decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+    } catch (jwtError: any) {
+      console.error('JWT Verification Error:', jwtError.message);
+      return NextResponse.json(
+        { success: false, error: 'Invalid or expired token' },
+        { status: 401 }
+      );
+    }
     
     // Get user from token
     const user = await User.findById(decoded.id).select('-password');

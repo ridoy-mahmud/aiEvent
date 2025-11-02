@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
+import api from '@/lib/api/axios';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase/config';
 
@@ -88,10 +89,18 @@ export const getCurrentUser = createAsyncThunk(
   async (_, { rejectWithValue, getState }) => {
     try {
       const state = getState() as any;
-      const token = state.auth.token;
-      const response = await axios.get(`${API_URL}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      let token = state.auth.token;
+      
+      // If token is not in state, try to get it from localStorage
+      if (!token && typeof window !== 'undefined') {
+        token = localStorage.getItem('token');
+      }
+      
+      if (!token) {
+        return rejectWithValue('No authentication token found');
+      }
+      
+      const response = await api.get(`/auth/me`);
       return response.data.data.user;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.error || 'Failed to get user');
