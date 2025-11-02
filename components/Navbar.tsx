@@ -32,7 +32,7 @@ export default function Navbar() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md bg-dark-100/80 border-b border-dark-200">
+    <header className="sticky top-0 z-50 backdrop-blur-2xl bg-dark-100/60 border-b border-white/10">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-4">
         <div className="flex items-center justify-between w-full">
           <Link href="/" className="flex items-center gap-2 sm:gap-3 group flex-shrink-0">

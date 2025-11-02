@@ -8,7 +8,7 @@ import { fetchEvents, registerForEvent as registerEvent, unregisterFromEvent as 
 import { PageLoader, Loader } from "@/components/Loader";
 import SuccessModal from "@/components/SuccessModal";
 import AuthGuard from "@/components/AuthGuard";
-import { Calendar, Clock, MapPin, Users, Search, Filter, CheckCircle, X } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Search, Filter, CheckCircle, X, TrendingUp, Award, Globe, Zap, Star, ArrowRight, Sparkles } from "lucide-react";
 
 interface Event {
   _id: string;
@@ -160,12 +160,186 @@ export default function HomePage() {
     return <PageLoader />;
   }
 
+  // Calculate statistics
+  const totalEvents = events.length;
+  const totalRegistrations = events.reduce((sum, event) => sum + (event.registeredUsers?.length || 0), 0);
+  const upcomingEvents = events.filter(event => new Date(event.date) >= new Date()).length;
+  const featuredEvents = events.slice(0, 3); // Top 3 events as featured
+
   return (
     <AuthGuard>
-      <section id="home" className="py-6 md:py-10 px-4 md:px-0">
+      {/* Hero Section */}
+      <section className="relative py-12 md:py-20 px-4 md:px-0 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5 blur-3xl"></div>
+        <div className="relative max-w-7xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 mb-6">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-sm text-light-100">Premier AI Event Platform</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-light-100 to-primary bg-clip-text text-transparent">
+            Welcome to AI Summit
+          </h1>
+          <p className="text-lg md:text-xl text-light-200 max-w-3xl mx-auto mb-8 leading-relaxed">
+            Connect with the brightest minds in artificial intelligence. Explore cutting-edge innovations, 
+            network with industry leaders, and shape the future of AI at our premier events.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="#events"
+              className="px-8 py-4 bg-primary hover:bg-primary/90 text-black font-semibold rounded-lg transition-all transform hover:scale-105 flex items-center gap-2"
+            >
+              Explore Events
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <Link
+              href="/about"
+              className="px-8 py-4 glass-soft hover:glass text-light-100 font-semibold rounded-lg transition-all"
+            >
+              Learn More
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Statistics Section */}
+      <section className="py-12 md:py-16 px-4 md:px-0">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            <div className="glass p-6 rounded-lg text-center card-shadow">
+              <div className="flex items-center justify-center mb-3">
+                <Calendar className="w-8 h-8 text-primary" />
+              </div>
+              <div className="text-3xl md:text-4xl font-bold text-white mb-2">{totalEvents}</div>
+              <div className="text-sm md:text-base text-light-200">Total Events</div>
+            </div>
+            <div className="glass p-6 rounded-lg text-center card-shadow">
+              <div className="flex items-center justify-center mb-3">
+                <Users className="w-8 h-8 text-primary" />
+              </div>
+              <div className="text-3xl md:text-4xl font-bold text-white mb-2">{totalRegistrations}</div>
+              <div className="text-sm md:text-base text-light-200">Registrations</div>
+            </div>
+            <div className="glass p-6 rounded-lg text-center card-shadow">
+              <div className="flex items-center justify-center mb-3">
+                <TrendingUp className="w-8 h-8 text-primary" />
+              </div>
+              <div className="text-3xl md:text-4xl font-bold text-white mb-2">{upcomingEvents}</div>
+              <div className="text-sm md:text-base text-light-200">Upcoming</div>
+            </div>
+            <div className="glass p-6 rounded-lg text-center card-shadow">
+              <div className="flex items-center justify-center mb-3">
+                <Award className="w-8 h-8 text-primary" />
+              </div>
+              <div className="text-3xl md:text-4xl font-bold text-white mb-2">{categories.length - 1}</div>
+              <div className="text-sm md:text-base text-light-200">Categories</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-12 md:py-16 px-4 md:px-0">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Why Choose AI Summit?</h2>
+            <p className="text-light-200 max-w-2xl mx-auto">
+              Join thousands of AI enthusiasts, researchers, and professionals in exploring the future of technology
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            <div className="glass p-6 md:p-8 rounded-lg card-shadow hover:scale-105 transition-transform">
+              <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
+                <Globe className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">Global Network</h3>
+              <p className="text-light-200">
+                Connect with AI professionals and researchers from around the world. Build meaningful connections that last.
+              </p>
+            </div>
+            <div className="glass p-6 md:p-8 rounded-lg card-shadow hover:scale-105 transition-transform">
+              <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
+                <Zap className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">Cutting-Edge Content</h3>
+              <p className="text-light-200">
+                Stay ahead with the latest AI trends, breakthroughs, and innovations from industry-leading experts.
+              </p>
+            </div>
+            <div className="glass p-6 md:p-8 rounded-lg card-shadow hover:scale-105 transition-transform">
+              <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
+                <Star className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">Premium Experience</h3>
+              <p className="text-light-200">
+                Enjoy carefully curated events, interactive workshops, and exclusive networking opportunities.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Events Section */}
+      {featuredEvents.length > 0 && (
+        <section className="py-12 md:py-16 px-4 md:px-0">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">Featured Events</h2>
+                <p className="text-light-200">Don't miss these exciting upcoming events</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              {featuredEvents.map((event) => {
+                const registered = isRegistered(event);
+                const spotsLeft = event.capacity - event.registeredUsers.length;
+                return (
+                  <div key={event._id} className="glass p-6 rounded-lg card-shadow hover:scale-105 transition-transform relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
+                    <div className="relative">
+                      <div className="relative h-40 w-full rounded-lg overflow-hidden mb-4">
+                        <Image
+                          src={event.image}
+                          alt={event.title}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                        />
+                        <div className="absolute top-2 right-2">
+                          <span className="px-3 py-1 bg-primary text-black text-xs font-semibold rounded-full">Featured</span>
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-semibold text-white mb-2 line-clamp-1">{event.title}</h3>
+                      <p className="text-sm text-light-200 mb-4 line-clamp-2">{event.description}</p>
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center gap-2 text-sm text-light-200">
+                          <Calendar className="w-4 h-4 text-primary" />
+                          <span>{new Date(event.date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-light-200">
+                          <MapPin className="w-4 h-4 text-primary" />
+                          <span className="line-clamp-1">{event.location}</span>
+                        </div>
+                      </div>
+                      <Link
+                        href={`/events/${event._id}`}
+                        className="block w-full bg-primary hover:bg-primary/90 text-black text-center py-2 rounded-lg transition-colors text-sm font-semibold"
+                      >
+                        View Details
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Main Events Section */}
+      <section id="events" className="py-6 md:py-10 px-4 md:px-0">
       <div className="text-center mb-8 md:mb-12">
-        <h1 className="text-3xl md:text-4xl">Discover AI Events</h1>
-        <p className="subheading text-base md:text-lg mt-2">
+        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Discover AI Events</h2>
+        <p className="subheading text-base md:text-lg mt-2 text-light-200">
           Join cutting-edge conferences, workshops, and networking events in the world of AI
         </p>
       </div>
@@ -179,7 +353,7 @@ export default function HomePage() {
             placeholder="Search events..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-dark-100 border border-dark-200 rounded-lg px-10 py-3 text-white placeholder-light-200 focus:outline-none focus:border-primary transition-colors"
+            className="w-full glass-soft rounded-lg px-10 py-3 text-white placeholder-light-200 focus:outline-none focus:glass transition-all"
           />
         </div>
 
@@ -192,7 +366,7 @@ export default function HomePage() {
               className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-colors ${
                 selectedCategory === category
                   ? "bg-primary text-black"
-                  : "bg-dark-100 text-light-100 hover:bg-dark-200"
+                  : "glass-soft text-light-100 hover:glass"
               }`}
             >
               {category}
@@ -253,7 +427,7 @@ export default function HomePage() {
                 <div className="flex gap-3">
                   <Link
                     href={`/events/${event._id}`}
-                    className="flex-1 bg-dark-200 hover:bg-dark-100 text-light-100 text-center py-2 rounded-lg transition-colors text-sm font-medium"
+                    className="flex-1 glass-soft hover:glass text-light-100 text-center py-2 rounded-lg transition-all text-sm font-medium"
                   >
                     View Details
                   </Link>
@@ -318,7 +492,7 @@ export default function HomePage() {
               <div className="flex justify-center items-center gap-4">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
-                  className="px-6 py-3 bg-dark-100 hover:bg-dark-200 text-light-100 rounded-lg transition-colors flex items-center gap-2 font-semibold"
+                  className="px-6 py-3 glass-soft hover:glass text-light-100 rounded-lg transition-all flex items-center gap-2 font-semibold"
                 >
                   ← Previous
                 </button>
@@ -360,7 +534,133 @@ export default function HomePage() {
           )
         }
       />
-    </section>
+      </section>
+
+      {/* Our Sponsors Section */}
+      <section className="py-12 md:py-16 px-4 md:px-0">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Our Sponsors</h2>
+            <p className="text-light-200 max-w-2xl mx-auto">
+              Proudly supported by leading technology companies and innovators
+            </p>
+          </div>
+          
+          <div className="relative overflow-hidden">
+            {/* Gradient overlays for fade effect */}
+            <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none"></div>
+            
+            <div className="sponsors-slider">
+              <div className="sponsors-track">
+                {/* First set of sponsors */}
+                {[
+                  { name: "Google", logo: "https://logo.clearbit.com/google.com" },
+                  { name: "Microsoft", logo: "https://logo.clearbit.com/microsoft.com" },
+                  { name: "Amazon", logo: "https://logo.clearbit.com/amazon.com" },
+                  { name: "OpenAI", logo: "https://logo.clearbit.com/openai.com" },
+                  { name: "NVIDIA", logo: "https://logo.clearbit.com/nvidia.com" },
+                  { name: "Meta", logo: "https://logo.clearbit.com/meta.com" },
+                  { name: "Apple", logo: "https://logo.clearbit.com/apple.com" },
+                  { name: "Intel", logo: "https://logo.clearbit.com/intel.com" },
+                  { name: "Tesla", logo: "https://logo.clearbit.com/tesla.com" },
+                  { name: "Salesforce", logo: "https://logo.clearbit.com/salesforce.com" },
+                  { name: "Oracle", logo: "https://logo.clearbit.com/oracle.com" },
+                ].map((sponsor, index) => (
+                  <div
+                    key={`first-${index}`}
+                    className="sponsor-card glass-soft flex flex-col items-center justify-center p-6 md:p-8 rounded-lg card-shadow min-w-[200px] md:min-w-[250px] mx-4 hover:scale-105 transition-transform"
+                  >
+                    <div className="relative w-20 h-20 md:w-24 md:h-24 mb-4 rounded-lg glass-strong flex items-center justify-center p-3 bg-white/5">
+                      <Image
+                        src={sponsor.logo}
+                        alt={`${sponsor.name} logo`}
+                        fill
+                        className="object-contain p-2"
+                        sizes="(max-width: 768px) 80px, 96px"
+                        unoptimized
+                      />
+                    </div>
+                    <h3 className="text-base md:text-lg font-semibold text-white text-center">
+                      {sponsor.name}
+                    </h3>
+                  </div>
+                ))}
+                
+                {/* Duplicate set for infinite scroll */}
+                {[
+                  { name: "Google", logo: "https://logo.clearbit.com/google.com" },
+                  { name: "Microsoft", logo: "https://logo.clearbit.com/microsoft.com" },
+                  { name: "Amazon", logo: "https://logo.clearbit.com/amazon.com" },
+                  { name: "OpenAI", logo: "https://logo.clearbit.com/openai.com" },
+                  { name: "NVIDIA", logo: "https://logo.clearbit.com/nvidia.com" },
+                  { name: "Meta", logo: "https://logo.clearbit.com/meta.com" },
+                  { name: "Apple", logo: "https://logo.clearbit.com/apple.com" },
+                  { name: "Intel", logo: "https://logo.clearbit.com/intel.com" },
+                  { name: "Tesla", logo: "https://logo.clearbit.com/tesla.com" },
+                  { name: "Salesforce", logo: "https://logo.clearbit.com/salesforce.com" },
+                  { name: "Oracle", logo: "https://logo.clearbit.com/oracle.com" },
+                ].map((sponsor, index) => (
+                  <div
+                    key={`second-${index}`}
+                    className="sponsor-card glass-soft flex flex-col items-center justify-center p-6 md:p-8 rounded-lg card-shadow min-w-[200px] md:min-w-[250px] mx-4 hover:scale-105 transition-transform"
+                  >
+                    <div className="relative w-20 h-20 md:w-24 md:h-24 mb-4 rounded-lg glass-strong flex items-center justify-center p-3 bg-white/5">
+                      <Image
+                        src={sponsor.logo}
+                        alt={`${sponsor.name} logo`}
+                        fill
+                        className="object-contain p-2"
+                        sizes="(max-width: 768px) 80px, 96px"
+                        unoptimized
+                      />
+                    </div>
+                    <h3 className="text-base md:text-lg font-semibold text-white text-center">
+                      {sponsor.name}
+                    </h3>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Map Section */}
+      <section className="py-12 md:py-16 px-4 md:px-0">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Find Us</h2>
+            <p className="text-light-200 max-w-2xl mx-auto">
+              Visit our location or get directions to our AI Summit events
+            </p>
+          </div>
+          <div className="glass rounded-lg overflow-hidden card-shadow">
+            <div className="w-full h-[400px] md:h-[500px] lg:h-[600px]">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.8012!2d103.8528!3d1.2966!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31da19f936f551ad%3A0x1a05c01c1e0d8b0!2sSingapore!5e0!3m2!1sen!2sus!4v1234567890"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="rounded-lg"
+              ></iframe>
+            </div>
+          </div>
+          <div className="mt-6 text-center">
+            <div className="glass-soft inline-block px-6 py-3 rounded-lg">
+              <div className="flex items-center justify-center gap-2 text-light-100">
+                <MapPin className="w-5 h-5 text-primary" />
+                <span className="text-sm md:text-base">
+                  Singapore | AI Summit Headquarters
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </AuthGuard>
   );
 }
