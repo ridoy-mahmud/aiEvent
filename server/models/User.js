@@ -12,8 +12,9 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
+    required: false, // Made optional to support Google auth
     minlength: 6,
+    select: false, // Don't return password by default
   },
   name: {
     type: String,
@@ -31,9 +32,13 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// Hash password before saving
+// Hash password before saving (skip for Google users)
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
+    return next();
+  }
+  // Don't hash Google user passwords
+  if (this.password && this.password.startsWith('google_')) {
     return next();
   }
   const salt = await bcrypt.genSalt(10);

@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Ensure API routes don't interfere with Express server
+  async rewrites() {
+    return [];
+  },
 };
 
 export default nextConfig;

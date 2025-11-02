@@ -162,16 +162,16 @@ export default function HomePage() {
 
   return (
     <AuthGuard>
-      <section id="home" className="py-10">
-      <div className="text-center mb-12">
-        <h1>Discover AI Events</h1>
-        <p className="subheading">
+      <section id="home" className="py-6 md:py-10 px-4 md:px-0">
+      <div className="text-center mb-8 md:mb-12">
+        <h1 className="text-3xl md:text-4xl">Discover AI Events</h1>
+        <p className="subheading text-base md:text-lg mt-2">
           Join cutting-edge conferences, workshops, and networking events in the world of AI
         </p>
       </div>
 
       {/* Search and Filter */}
-      <div className="mb-10 space-y-4">
+      <div className="mb-8 md:mb-10 space-y-4 px-4 md:px-0">
         <div className="relative max-w-md mx-auto">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-light-200" />
           <input
@@ -183,13 +183,13 @@ export default function HomePage() {
           />
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <Filter className="w-5 h-5 text-light-200" />
+        <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3 px-4">
+          <Filter className="w-4 h-4 md:w-5 md:h-5 text-light-200" />
           {categories.map((category) => (
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-colors ${
                 selectedCategory === category
                   ? "bg-primary text-black"
                   : "bg-dark-100 text-light-100 hover:bg-dark-200"
@@ -208,14 +208,14 @@ export default function HomePage() {
         </div>
       ) : (
         <>
-          <div className="events">
+          <div className="events grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 px-4 md:px-0">
             {currentEvents.map((event) => {
             const registered = isRegistered(event);
             const spotsLeft = event.capacity - event.registeredUsers.length;
             
             return (
-              <div key={event._id} id="event-card" className="glass p-6 rounded-lg card-shadow hover:scale-105 transition-transform">
-                <div className="relative h-[200px] w-full rounded-lg overflow-hidden mb-4">
+              <div key={event._id} id="event-card" className="glass p-4 md:p-6 rounded-lg card-shadow hover:scale-[1.02] md:hover:scale-105 transition-transform">
+                <div className="relative h-[180px] md:h-[200px] w-full rounded-lg overflow-hidden mb-3 md:mb-4">
                   <Image
                     src={event.image}
                     alt={event.title}

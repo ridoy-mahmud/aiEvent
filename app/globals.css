@@ -127,7 +127,8 @@
     @apply font-schibsted-grotesk text-2xl font-bold;
   }
 
-  ul {
+  /* Remove default list styling - apply per component as needed */
+  ul:not(nav ul):not(header ul) {
     @apply list-disc list-inside;
   }
 }
@@ -148,27 +149,16 @@
   }
 
   header {
-    @apply glass sticky top-0 z-50;
-
-    nav {
-      @apply flex flex-row justify-between mx-auto container sm:px-10 px-5 py-4;
-    }
-
-    .logo {
-      @apply flex flex-row items-center gap-2;
-
-      p {
-        @apply text-xl font-bold italic max-sm:hidden;
-      }
-    }
-
-    ul {
-      @apply flex flex-row items-center gap-6 list-none;
+    /* Navbar styles handled inline for better responsive control */
+    
+    nav ul,
+    header ul {
+      @apply list-none;
     }
   }
 
   .events {
-    @apply grid md:grid-cols-3 gap-10 sm:grid-cols-2 grid-cols-1;
+    /* Grid styles now handled inline for better responsive control */
   }
 
   #event-card {

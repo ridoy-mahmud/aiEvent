@@ -114,6 +114,66 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// @route   POST /api/auth/google
+// @desc    Login/Register with Google
+// @access  Public
+router.post('/google', async (req, res) => {
+  try {
+    const { idToken, email, name, photoURL } = req.body;
+
+    // Validation
+    if (!email || !name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please provide email and name from Google',
+      });
+    }
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+
+    if (user) {
+      // User exists, update name if needed and log them in
+      if (name && user.name !== name) {
+        user.name = name;
+        await user.save();
+      }
+    } else {
+      // Create new user with Google authentication
+      const userData = {
+        name,
+        email,
+        password: `google_${Date.now()}_${Math.random()}`, // Unique dummy password for Google users
+        role: email === 'ridoy007@gmail.com' ? 'admin' : 'user',
+      };
+      
+      user = await User.create(userData);
+    }
+
+    const token = generateToken(user._id);
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          createdAt: user.createdAt,
+        },
+        token,
+      },
+    });
+  } catch (error) {
+    console.error('Google Auth Error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Google authentication failed',
+    });
+  }
+});
+
 // @route   GET /api/auth/me
 // @desc    Get current user
 // @access  Private

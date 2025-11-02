@@ -1,54 +1,68 @@
 "use client";
 
-import { useState } from "react";
-import { Mail, MessageSquare, Send, CheckCircle, Loader as LoaderIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Mail, MessageSquare, Send, CheckCircle } from "lucide-react";
 import { ButtonLoader } from "@/components/Loader";
 import AuthGuard from "@/components/AuthGuard";
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { createContact, clearError } from "@/lib/store/slices/contactsSlice";
 
 export default function ContactPage() {
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
+  const { loading, error } = useAppSelector((state) => state.contacts);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     subject: "",
     message: "",
   });
-  const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.name || "",
+        email: user.email || "",
+      }));
+    }
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    
+    // Clear previous errors
+    dispatch(clearError());
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // Store in localStorage for demo
-    const contacts = JSON.parse(localStorage.getItem("ai_event_contacts") || "[]");
-    contacts.push({
-      ...formData,
-      id: Date.now(),
-      timestamp: new Date().toISOString(),
-    });
-    localStorage.setItem("ai_event_contacts", JSON.stringify(contacts));
-
-    setLoading(false);
-    setSubmitted(true);
-    setFormData({ name: "", email: "", subject: "", message: "" });
-
-    setTimeout(() => setSubmitted(false), 5000);
+    const result = await dispatch(createContact(formData));
+    
+    if (createContact.fulfilled.match(result)) {
+      setSubmitted(true);
+      setFormData({ 
+        name: user?.name || "", 
+        email: user?.email || "", 
+        subject: "", 
+        message: "" 
+      });
+      setTimeout(() => setSubmitted(false), 5000);
+    } else {
+      // Error will be displayed via the error state
+      console.error('Contact form submission failed:', result.payload);
+    }
   };
 
   return (
     <AuthGuard>
       <div className="py-10 max-w-4xl mx-auto">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl mb-4">Get In Touch</h1>
-        <p className="text-light-200 text-lg">
+      <div className="text-center mb-8 md:mb-12 px-4">
+        <h1 className="text-3xl md:text-4xl mb-4">Get In Touch</h1>
+        <p className="text-light-200 text-base md:text-lg">
           Have questions? Want to submit an event? We'd love to hear from you!
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid md:grid-cols-2 gap-6 md:gap-8 px-4 md:px-0">
         {/* Contact Info */}
         <div className="space-y-6">
           <div className="glass p-6 rounded-lg card-shadow">
@@ -85,7 +99,7 @@ export default function ContactPage() {
         </div>
 
         {/* Contact Form */}
-        <div className="glass p-8 rounded-lg card-shadow">
+        <div className="glass p-6 md:p-8 rounded-lg card-shadow">
           {submitted && (
             <div className="bg-green-500/20 border border-green-500/50 text-green-200 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
               <CheckCircle className="w-5 h-5" />
@@ -95,6 +109,12 @@ export default function ContactPage() {
 
           <h2 className="text-2xl font-bold mb-6">Send Us a Message</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+            
             <div>
               <label className="block text-sm font-medium text-light-100 mb-2">
                 Name *

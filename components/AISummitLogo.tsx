@@ -1,0 +1,48 @@
+"use client";
+
+export default function AISummitLogo({ className = "w-8 h-8" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 64 64"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* AI Brain/Circuit Pattern */}
+      <path
+        d="M32 12C24.8 12 19 17.8 19 25C19 28.5 20.6 31.6 23 33.7L23 45C23 47.8 25.2 50 28 50H36C38.8 50 41 47.8 41 45V33.7C43.4 31.6 45 28.5 45 25C45 17.8 39.2 12 32 12Z"
+        fill="#5dfeca"
+        fillOpacity="0.8"
+      />
+      {/* Neural Network Nodes */}
+      <circle cx="26" cy="28" r="2.5" fill="#5dfeca" />
+      <circle cx="32" cy="25" r="2.5" fill="#5dfeca" />
+      <circle cx="38" cy="28" r="2.5" fill="#5dfeca" />
+      <circle cx="29" cy="32" r="2" fill="#5dfeca" />
+      <circle cx="35" cy="32" r="2" fill="#5dfeca" />
+      {/* Connection Lines */}
+      <line x1="26" y1="28" x2="32" y2="25" stroke="#5dfeca" strokeWidth="1.5" />
+      <line x1="32" y1="25" x2="38" y2="28" stroke="#5dfeca" strokeWidth="1.5" />
+      <line x1="26" y1="28" x2="29" y2="32" stroke="#5dfeca" strokeWidth="1.5" />
+      <line x1="38" y1="28" x2="35" y2="32" stroke="#5dfeca" strokeWidth="1.5" />
+      <line x1="29" y1="32" x2="35" y2="32" stroke="#5dfeca" strokeWidth="1.5" />
+      {/* Summit/Peak Symbol */}
+      <path
+        d="M16 48L32 52L48 48L32 60L16 48Z"
+        fill="#5dfeca"
+        fillOpacity="0.6"
+      />
+      <path
+        d="M20 46L32 49L44 46L32 56L20 46Z"
+        fill="#5dfeca"
+        fillOpacity="0.8"
+      />
+      {/* Sparkles/Energy */}
+      <circle cx="20" cy="18" r="1.5" fill="#5dfeca" opacity="0.7" />
+      <circle cx="44" cy="20" r="1.5" fill="#5dfeca" opacity="0.7" />
+      <circle cx="18" cy="40" r="1.5" fill="#5dfeca" opacity="0.7" />
+      <circle cx="46" cy="42" r="1.5" fill="#5dfeca" opacity="0.7" />
+    </svg>
+  );
+}
+

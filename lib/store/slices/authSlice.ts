@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from '@/lib/firebase/config';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -89,6 +91,49 @@ export const getCurrentUser = createAsyncThunk(
       return response.data.data.user;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.error || 'Failed to get user');
+    }
+  }
+);
+
+export const signInWithGoogle = createAsyncThunk(
+  'auth/signInWithGoogle',
+  async (_, { rejectWithValue }) => {
+    try {
+      // Check if Firebase is configured
+      if (!auth || !googleProvider) {
+        return rejectWithValue('Firebase is not configured. Please add Firebase credentials to .env.local');
+      }
+
+      // Sign in with Google using Firebase
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      const idToken = await user.getIdToken();
+
+      // Send the token to your backend
+      const response = await axios.post(`${API_URL}/auth/google`, {
+        idToken,
+        email: user.email,
+        name: user.displayName || user.email?.split('@')[0] || 'User',
+        photoURL: user.photoURL,
+      });
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', response.data.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      }
+
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Google Sign-In Error:', error);
+      
+      // Handle Firebase errors
+      if (error.code === 'auth/popup-closed-by-user') {
+        return rejectWithValue('Sign-in popup was closed');
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        return rejectWithValue('Sign-in was cancelled');
+      }
+      
+      return rejectWithValue(error.response?.data?.error || error.message || 'Google Sign-In failed');
     }
   }
 );
@@ -188,6 +233,21 @@ const authSlice = createSlice({
       })
       .addCase(updateUser.fulfilled, (state, action) => {
         state.user = action.payload;
+      })
+      .addCase(signInWithGoogle.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(signInWithGoogle.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(signInWithGoogle.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });

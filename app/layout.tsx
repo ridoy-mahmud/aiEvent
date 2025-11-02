@@ -18,8 +18,13 @@ const martianMono = Martian_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Events - Discover Cutting-Edge AI Conferences",
-  description: "Join cutting-edge conferences, workshops, and networking events in the world of AI",
+  title: "AI Summit - Discover Cutting-Edge AI Conferences",
+  description:
+    "Join cutting-edge conferences, workshops, and networking events in the world of AI",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -48,9 +53,7 @@ export default function RootLayout({
             />
           </div>
           <Navbar />
-          <main className="min-h-screen">
-            {children}
-          </main>
+          <main className="min-h-screen">{children}</main>
           <Footer />
           <ChatBot />
         </ReduxProvider>

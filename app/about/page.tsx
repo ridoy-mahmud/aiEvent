@@ -6,16 +6,16 @@ import { Calendar, Users, Target, Award, Zap, Globe } from "lucide-react";
 export default function AboutPage() {
   return (
     <AuthGuard>
-      <div className="py-10 max-w-6xl mx-auto">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl mb-4">About AI Events</h1>
-        <p className="text-light-200 text-lg max-w-2xl mx-auto">
+      <div className="py-6 md:py-10 max-w-6xl mx-auto px-4 md:px-6">
+      <div className="text-center mb-8 md:mb-12">
+        <h1 className="text-3xl md:text-4xl mb-4">About AI Events</h1>
+        <p className="text-light-200 text-base md:text-lg max-w-2xl mx-auto">
           Your premier destination for discovering and joining cutting-edge AI conferences, 
           workshops, and networking events worldwide.
         </p>
       </div>
 
-      <div className="glass p-8 rounded-lg card-shadow mb-8">
+      <div className="glass p-6 md:p-8 rounded-lg card-shadow mb-6 md:mb-8">
         <h2 className="text-2xl font-bold mb-4">Our Mission</h2>
         <p className="text-light-100 text-lg leading-relaxed mb-4">
           At AI Events, we believe in democratizing access to the best AI knowledge and networking 
@@ -29,7 +29,7 @@ export default function AboutPage() {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
         <div className="glass p-6 rounded-lg card-shadow text-center">
           <Calendar className="w-12 h-12 text-primary mx-auto mb-4" />
           <h3 className="text-xl font-bold mb-2">32+ Events</h3>

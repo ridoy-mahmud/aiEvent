@@ -12,6 +12,7 @@ import {
   deleteEvent,
 } from "@/lib/store/slices/eventsSlice";
 import { fetchUsers, deleteUser } from "@/lib/store/slices/usersSlice";
+import { fetchContacts, markContactAsRead, deleteContact } from "@/lib/store/slices/contactsSlice";
 
 interface Event {
   _id: string;
@@ -55,9 +56,10 @@ import {
   Globe,
   CheckCircle,
   Search,
+  MessageSquare,
 } from "lucide-react";
 
-type TabType = "overview" | "events" | "users" | "analytics" | "forms";
+type TabType = "overview" | "events" | "users" | "analytics" | "forms" | "contacts";
 
 export default function AdminDashboard() {
   const dispatch = useAppDispatch();
@@ -66,6 +68,9 @@ export default function AdminDashboard() {
   );
   const { users: allUsers, loading: usersLoading } = useAppSelector(
     (state) => state.users
+  );
+  const { contacts: allContacts, loading: contactsLoading, unreadCount } = useAppSelector(
+    (state) => state.contacts
   );
   const { user: currentUser, isAuthenticated } = useAppSelector(
     (state) => state.auth
@@ -90,7 +95,7 @@ export default function AdminDashboard() {
   });
   const router = useRouter();
 
-  const loading = eventsLoading || usersLoading;
+  const loading = eventsLoading || usersLoading || contactsLoading;
 
   const [eventFormData, setEventFormData] = useState({
     title: "",
@@ -118,6 +123,7 @@ export default function AdminDashboard() {
     }
     dispatch(fetchEvents());
     dispatch(fetchUsers());
+    dispatch(fetchContacts());
   }, [dispatch, router, isAuthenticated, currentUser]);
 
   // Statistics Calculations
@@ -501,16 +507,16 @@ export default function AdminDashboard() {
 
   return (
     <div className="py-10">
-      <div className="mb-8">
-        <h1 className="text-4xl mb-2">Admin Dashboard</h1>
-        <p className="text-light-200">
+      <div className="mb-6 md:mb-8 px-4 md:px-0">
+        <h1 className="text-3xl md:text-4xl mb-2">Admin Dashboard</h1>
+        <p className="text-light-200 text-sm md:text-base">
           Manage events, users, and view analytics
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 border-b border-dark-200">
-        <div className="flex gap-2 overflow-x-auto">
+      <div className="mb-6 border-b border-dark-200 px-4 md:px-0">
+        <div className="flex gap-1 md:gap-2 overflow-x-auto scrollbar-hide">
           {[
             { id: "overview" as TabType, label: "Overview", icon: BarChart3 },
             { id: "events" as TabType, label: "Events", icon: Calendar },
@@ -521,20 +527,31 @@ export default function AdminDashboard() {
               icon: TrendingUp,
             },
             { id: "forms" as TabType, label: "Forms", icon: FileText },
+            { 
+              id: "contacts" as TabType, 
+              label: "Messages", 
+              icon: MessageSquare,
+              badge: unreadCount > 0 ? unreadCount : undefined,
+            },
           ].map((tab) => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-3 font-semibold transition-colors flex items-center gap-2 border-b-2 ${
+                className={`px-3 md:px-6 py-2 md:py-3 font-semibold transition-colors flex items-center gap-1 md:gap-2 border-b-2 whitespace-nowrap text-sm md:text-base ${
                   activeTab === tab.id
                     ? "border-primary text-primary"
                     : "border-transparent text-light-200 hover:text-primary"
                 }`}
               >
-                <Icon className="w-5 h-5" />
-                {tab.label}
+                <Icon className="w-4 h-4 md:w-5 md:h-5" />
+                <span>{tab.label}</span>
+                {tab.badge && tab.badge > 0 && (
+                  <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    {tab.badge}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -545,7 +562,7 @@ export default function AdminDashboard() {
       {activeTab === "overview" && (
         <div className="space-y-6">
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6 px-4 md:px-0">
             <div className="glass p-6 rounded-lg card-shadow">
               <div className="flex items-center justify-between">
                 <div>
@@ -569,6 +586,19 @@ export default function AdminDashboard() {
                   </p>
                 </div>
                 <UsersIcon className="w-10 h-10 text-primary" />
+              </div>
+            </div>
+
+            <div className="glass p-6 rounded-lg card-shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-light-200 text-sm mb-1">Contact Messages</p>
+                  <p className="text-3xl font-bold">{allContacts.length}</p>
+                  <p className="text-xs text-light-200 mt-1">
+                    {unreadCount} unread messages
+                  </p>
+                </div>
+                <MessageSquare className="w-10 h-10 text-primary" />
               </div>
             </div>
 
@@ -1268,6 +1298,119 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Contacts Tab */}
+      {activeTab === "contacts" && (
+        <div className="space-y-6 px-4 md:px-0">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Contact Messages</h2>
+              <p className="text-light-200">
+                {allContacts.length} total messages, {unreadCount} unread
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => dispatch(fetchContacts({ read: false }))}
+                className="bg-dark-200 hover:bg-dark-100 text-light-100 px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+              >
+                Unread Only
+              </button>
+              <button
+                onClick={() => dispatch(fetchContacts())}
+                className="bg-primary hover:bg-primary/90 text-black px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+              >
+                All Messages
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {allContacts.length === 0 ? (
+              <div className="glass p-12 rounded-lg card-shadow text-center">
+                <MessageSquare className="w-16 h-16 text-light-200 mx-auto mb-4 opacity-50" />
+                <p className="text-light-200 text-lg">No contact messages yet</p>
+              </div>
+            ) : (
+              allContacts.map((contact: any) => (
+                <div
+                  key={contact._id}
+                  className={`glass p-6 rounded-lg card-shadow border-l-4 ${
+                    !contact.read ? "border-primary" : "border-dark-200"
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-semibold">{contact.subject}</h3>
+                        {!contact.read && (
+                          <span className="bg-primary text-black text-xs font-bold px-2 py-1 rounded">
+                            NEW
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-light-200">
+                        <div className="flex items-center gap-1">
+                          <Mail className="w-4 h-4" />
+                          <span>{contact.email}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span>{contact.name}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>
+                            {new Date(contact.createdAt).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      {!contact.read && (
+                        <button
+                          onClick={async () => {
+                            await dispatch(markContactAsRead({ id: contact._id, read: true }));
+                            dispatch(fetchContacts());
+                          }}
+                          className="bg-primary/20 hover:bg-primary/30 border border-primary/50 text-primary px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+                        >
+                          Mark Read
+                        </button>
+                      )}
+                      <button
+                        onClick={async () => {
+                          if (confirm("Are you sure you want to delete this message?")) {
+                            await dispatch(deleteContact(contact._id));
+                            dispatch(fetchContacts());
+                            setModalState({
+                              isOpen: true,
+                              title: "Message Deleted",
+                              message: "Contact message has been deleted successfully.",
+                              type: "success",
+                            });
+                          }
+                        }}
+                        className="bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-200 px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="bg-dark-100 rounded-lg p-4">
+                    <p className="text-light-100 whitespace-pre-wrap">{contact.message}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
