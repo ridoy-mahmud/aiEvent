@@ -9,7 +9,7 @@ import {
   registerForEvent as registerEvent,
   unregisterFromEvent as unregisterEvent,
 } from "@/lib/store/slices/eventsSlice";
-import { PageLoader, Loader } from "@/components/Loader";
+import { PageLoader, Loader, EventCardsSkeleton } from "@/components/Loader";
 import SuccessModal from "@/components/SuccessModal";
 import AuthGuard from "@/components/AuthGuard";
 import {
@@ -56,6 +56,7 @@ export default function HomePage() {
   const [registeringId, setRegisteringId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+  const [hasFetchedInitial, setHasFetchedInitial] = useState(false);
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
     title: string;
@@ -77,8 +78,23 @@ export default function HomePage() {
     "Networking",
   ];
 
-  // Single useEffect to fetch events when filters change
+  // Fetch events on initial mount - ALWAYS fetch once when page loads
   useEffect(() => {
+    if (!hasFetchedInitial) {
+      dispatch(
+        fetchEvents({
+          category: selectedCategory !== "All" ? selectedCategory : undefined,
+          search: searchTerm || undefined,
+        })
+      );
+      setHasFetchedInitial(true);
+    }
+  }, [dispatch, hasFetchedInitial]); // Run once on mount
+
+  // Fetch events when filters change (after initial fetch)
+  useEffect(() => {
+    if (!hasFetchedInitial) return; // Skip if initial fetch hasn't happened yet
+    
     dispatch(
       fetchEvents({
         category: selectedCategory !== "All" ? selectedCategory : undefined,
@@ -86,7 +102,7 @@ export default function HomePage() {
       })
     );
     setCurrentPage(1); // Reset to first page when filters change
-  }, [selectedCategory, searchTerm, dispatch]);
+  }, [selectedCategory, searchTerm, dispatch, hasFetchedInitial]);
 
   // Use events directly from Redux (already filtered by API)
   useEffect(() => {
@@ -449,7 +465,9 @@ export default function HomePage() {
         </div>
 
         {/* Events Grid */}
-        {filteredEvents.length === 0 ? (
+        {loading ? (
+          <EventCardsSkeleton count={6} />
+        ) : filteredEvents.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-light-200 text-lg">
               No events found. Try different search terms or categories.

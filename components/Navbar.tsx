@@ -4,13 +4,15 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { logout } from "@/lib/store/slices/authSlice";
-import { User, LogOut, Menu, X } from "lucide-react";
+import { fetchEvents } from "@/lib/store/slices/eventsSlice";
+import { User, LogOut, Menu, X, CalendarCheck } from "lucide-react";
 import AISummitLogo from "./AISummitLogo";
 import { useState, useEffect } from "react";
 
 export default function Navbar() {
   const dispatch = useAppDispatch();
   const { user, isAuthenticated, loading } = useAppSelector((state) => state.auth);
+  const { events } = useAppSelector((state) => state.events);
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -21,6 +23,13 @@ export default function Navbar() {
     setMounted(true);
   }, []);
 
+  // Fetch events when user is authenticated to check for booked events
+  useEffect(() => {
+    if (mounted && isAuthenticated && events.length === 0) {
+      dispatch(fetchEvents({}));
+    }
+  }, [mounted, isAuthenticated, dispatch]);
+
   const handleLogout = () => {
     dispatch(logout());
     router.push("/");
@@ -30,6 +39,15 @@ export default function Navbar() {
   const isAdminUser = user?.role === "admin";
 
   const isActive = (path: string) => pathname === path;
+
+  // Check if user has any registered events
+  const hasBookedEvents = mounted && isAuthenticated && user && events.some((event) => {
+    const userId = user.id;
+    return event.registeredUsers.some((regUser) => {
+      const regUserId = typeof regUser === "string" ? regUser : regUser._id || regUser.id;
+      return regUserId === userId;
+    });
+  });
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-2xl bg-dark-100/60 border-b border-white/10">
@@ -86,6 +104,19 @@ export default function Navbar() {
                     }`}
                   >
                     Dashboard
+                  </Link>
+                </li>
+              )}
+              {hasBookedEvents && (
+                <li className="list-none">
+                  <Link
+                    href="/booked-events"
+                    className={`flex items-center gap-2 text-sm lg:text-base font-medium transition-colors hover:text-primary py-1 px-2 ${
+                      isActive("/booked-events") ? "text-primary" : "text-light-100"
+                    }`}
+                  >
+                    <CalendarCheck className="w-4 h-4 flex-shrink-0" />
+                    <span className="hidden lg:inline">Booked Events</span>
                   </Link>
                 </li>
               )}
@@ -218,6 +249,18 @@ export default function Navbar() {
                       }`}
                     >
                       Dashboard
+                    </Link>
+                  )}
+                  {hasBookedEvents && (
+                    <Link
+                      href="/booked-events"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary py-2 px-2 rounded-lg ${
+                        isActive("/booked-events") ? "text-primary bg-primary/10" : "text-light-100"
+                      }`}
+                    >
+                      <CalendarCheck className="w-4 h-4" />
+                      <span>Booked Events</span>
                     </Link>
                   )}
                   <Link
