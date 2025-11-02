@@ -46,12 +46,18 @@ export default function LoginPage() {
     const result = await dispatch(loginUser({ email, password }));
     
     if (loginUser.fulfilled.match(result)) {
-      // Redirect based on user role
-      if (result.payload.user.role === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/");
-      }
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        // Redirect based on user role
+        if (result.payload.user.role === "admin") {
+          router.push("/admin");
+        } else {
+          router.push("/");
+        }
+      }, 100);
+    } else if (loginUser.rejected.match(result)) {
+      // Error is already set in Redux state and will be displayed
+      console.error('Login failed:', result.payload);
     }
   };
 
@@ -60,12 +66,18 @@ export default function LoginPage() {
     const result = await dispatch(signInWithGoogle());
     
     if (signInWithGoogle.fulfilled.match(result)) {
-      // Redirect based on user role
-      if (result.payload.user.role === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/");
-      }
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        // Redirect based on user role
+        if (result.payload.user.role === "admin") {
+          router.push("/admin");
+        } else {
+          router.push("/");
+        }
+      }, 100);
+    } else if (signInWithGoogle.rejected.match(result)) {
+      // Error is already set in Redux state and will be displayed
+      console.error('Google Sign-In failed:', result.payload);
     }
   };
 

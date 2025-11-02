@@ -40,8 +40,16 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    // Get user from token
-    const user = await User.findById(decoded.id).select('-password');
+    // Get user from token - handle both ObjectId and string
+    let user;
+    try {
+      // Try as ObjectId first
+      user = await User.findById(decoded.id).select('-password');
+    } catch (error) {
+      // If ObjectId fails, try as string
+      user = await User.findOne({ _id: decoded.id }).select('-password');
+    }
+    
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },

@@ -60,6 +60,9 @@ export default function RegisterPage() {
       setTimeout(() => {
         router.push("/");
       }, 2000);
+    } else if (registerUser.rejected.match(result)) {
+      // Error is already set in Redux state and will be displayed
+      console.error('Registration failed:', result.payload);
     }
   };
 
@@ -72,6 +75,9 @@ export default function RegisterPage() {
       setTimeout(() => {
         router.push("/");
       }, 2000);
+    } else if (signInWithGoogle.rejected.match(result)) {
+      // Error is already set in Redux state and will be displayed
+      console.error('Google Sign-In failed:', result.payload);
     }
   };
 

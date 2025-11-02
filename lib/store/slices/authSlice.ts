@@ -37,13 +37,40 @@ const getInitialState = (): AuthState => {
     };
   }
 
-  const token = localStorage.getItem('token');
-  const storedUser = localStorage.getItem('user');
+  try {
+    const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    
+    // Validate that both token and user exist
+    if (token && storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        // Only set as authenticated if both token and user are valid
+        return {
+          user: parsedUser,
+          token,
+          isAuthenticated: true,
+          loading: false,
+          error: null,
+        };
+      } catch (parseError) {
+        console.error('Error parsing stored user:', parseError);
+        // Clear invalid data
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+  } catch (error) {
+    console.error('Error initializing auth state:', error);
+    // Clear invalid data
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  }
   
   return {
-    user: storedUser ? JSON.parse(storedUser) : null,
-    token,
-    isAuthenticated: !!token && !!storedUser,
+    user: null,
+    token: null,
+    isAuthenticated: false,
     loading: false,
     error: null,
   };
@@ -57,13 +84,30 @@ export const registerUser = createAsyncThunk(
   async (userData: { name: string; email: string; password: string }, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${API_URL}/auth/register`, userData);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('token', response.data.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      
+      // Validate response structure
+      if (!response.data || !response.data.success || !response.data.data) {
+        console.error('Invalid register response structure:', response.data);
+        return rejectWithValue('Invalid response from server');
       }
+      
+      const { token, user } = response.data.data;
+      
+      if (!token || !user) {
+        console.error('Missing token or user in response:', response.data);
+        return rejectWithValue('Invalid response data');
+      }
+      
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+      
       return response.data.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || 'Registration failed');
+      console.error('Registration error:', error);
+      const errorMessage = error.response?.data?.error || error.message || 'Registration failed';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -73,13 +117,30 @@ export const loginUser = createAsyncThunk(
   async (credentials: { email: string; password: string }, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${API_URL}/auth/login`, credentials);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('token', response.data.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      
+      // Validate response structure
+      if (!response.data || !response.data.success || !response.data.data) {
+        console.error('Invalid login response structure:', response.data);
+        return rejectWithValue('Invalid response from server');
       }
+      
+      const { token, user } = response.data.data;
+      
+      if (!token || !user) {
+        console.error('Missing token or user in response:', response.data);
+        return rejectWithValue('Invalid response data');
+      }
+      
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+      
       return response.data.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || 'Login failed');
+      console.error('Login error:', error);
+      const errorMessage = error.response?.data?.error || error.message || 'Login failed';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -130,9 +191,22 @@ export const signInWithGoogle = createAsyncThunk(
         photoURL: user.photoURL,
       });
 
+      // Validate response structure
+      if (!response.data || !response.data.success || !response.data.data) {
+        console.error('Invalid Google auth response structure:', response.data);
+        return rejectWithValue('Invalid response from server');
+      }
+      
+      const { token, user: responseUser } = response.data.data;
+      
+      if (!token || !responseUser) {
+        console.error('Missing token or user in Google auth response:', response.data);
+        return rejectWithValue('Invalid response data');
+      }
+      
       if (typeof window !== 'undefined') {
-        localStorage.setItem('token', response.data.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(responseUser));
       }
 
       return response.data.data;
