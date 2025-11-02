@@ -48,7 +48,7 @@ const getAuthToken = () => {
 // Async thunks
 export const fetchEvents = createAsyncThunk(
   'events/fetchEvents',
-  async (filters?: { category?: string; search?: string }, { rejectWithValue }) => {
+  async (filters: { category?: string; search?: string } | undefined, { rejectWithValue }) => {
     try {
       const params = new URLSearchParams();
       if (filters?.category) params.append('category', filters.category);

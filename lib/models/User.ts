@@ -18,7 +18,8 @@ const UserSchema = new Schema<IUser>({
   },
   password: {
     type: String,
-    required: true,
+    required: false, // Made optional to support Google auth
+    select: false, // Don't return password by default
   },
   name: {
     type: String,
