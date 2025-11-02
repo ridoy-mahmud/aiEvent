@@ -1,8 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 import api from '@/lib/api/axios';
-import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '@/lib/firebase/config';
 
 // Use Next.js API routes in production (Vercel), Express server in development
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 
@@ -173,6 +171,15 @@ export const signInWithGoogle = createAsyncThunk(
   'auth/signInWithGoogle',
   async (_, { rejectWithValue }) => {
     try {
+      // Import Firebase dynamically on client side only
+      if (typeof window === 'undefined') {
+        return rejectWithValue('Google Sign-In is only available on the client side');
+      }
+
+      // Dynamic import for Firebase to ensure it's only loaded on client
+      const { signInWithPopup } = await import('firebase/auth');
+      const { auth, googleProvider } = await import('@/lib/firebase/config');
+
       // Check if Firebase is configured
       if (!auth || !googleProvider) {
         return rejectWithValue('Firebase is not configured. Please add Firebase credentials to .env.local');

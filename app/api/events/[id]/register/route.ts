@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Event from '@/lib/models/Event';
 import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 // POST - Register user for event
 export async function POST(
@@ -19,7 +22,36 @@ export async function POST(
       );
     }
 
-    const { userId } = await request.json();
+    // Get token from Authorization header
+    const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { success: false, error: 'Not authorized to access this route' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: 'No token provided' },
+        { status: 401 }
+      );
+    }
+
+    // Verify token and get user ID
+    let decoded: { id: string };
+    try {
+      decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+    } catch (jwtError: any) {
+      console.error('JWT Verification Error:', jwtError.message);
+      return NextResponse.json(
+        { success: false, error: 'Invalid or expired token' },
+        { status: 401 }
+      );
+    }
+
+    const userId = decoded.id;
 
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
       return NextResponse.json(
@@ -88,8 +120,36 @@ export async function DELETE(
       );
     }
 
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    // Get token from Authorization header for DELETE too
+    const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { success: false, error: 'Not authorized to access this route' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: 'No token provided' },
+        { status: 401 }
+      );
+    }
+
+    // Verify token and get user ID
+    let decoded: { id: string };
+    try {
+      decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+    } catch (jwtError: any) {
+      console.error('JWT Verification Error:', jwtError.message);
+      return NextResponse.json(
+        { success: false, error: 'Invalid or expired token' },
+        { status: 401 }
+      );
+    }
+
+    const userId = decoded.id;
 
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
       return NextResponse.json(
@@ -98,6 +158,7 @@ export async function DELETE(
       );
     }
 
+    // Find event first
     const event = await Event.findById(id);
     if (!event) {
       return NextResponse.json(
@@ -108,7 +169,7 @@ export async function DELETE(
 
     // Remove user from registeredUsers
     event.registeredUsers = event.registeredUsers.filter(
-      (id) => id.toString() !== userId
+      (regUserId) => regUserId.toString() !== userId
     );
     await event.save();
 

@@ -29,7 +29,8 @@ let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let googleProvider: GoogleAuthProvider | null = null;
 
-if (isFirebaseConfigured()) {
+// Only initialize on client side
+if (typeof window !== 'undefined' && isFirebaseConfigured()) {
   try {
     if (!getApps().length) {
       app = initializeApp(firebaseConfig);
@@ -48,7 +49,7 @@ if (isFirebaseConfigured()) {
   } catch (error) {
     console.error('Firebase initialization error:', error);
   }
-} else {
+} else if (typeof window !== 'undefined') {
   console.warn('⚠️ Firebase is not configured. Please add Firebase credentials to .env.local');
 }
 
