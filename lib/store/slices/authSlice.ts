@@ -182,13 +182,21 @@ export const signInWithGoogle = createAsyncThunk(
 
       // Check if Firebase is configured
       if (!auth || !googleProvider) {
+        console.error('❌ Firebase auth or googleProvider is not initialized');
         return rejectWithValue('Firebase is not configured. Please add Firebase credentials to .env.local');
+      }
+
+      // Log current domain for debugging
+      if (typeof window !== 'undefined') {
+        console.log('🔐 Attempting Google Sign-In from domain:', window.location.hostname);
       }
 
       // Sign in with Google using Firebase
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
       const idToken = await user.getIdToken();
+
+      console.log('✅ Google Sign-In successful, sending token to backend');
 
       // Send the token to your backend
       const response = await axios.post(`${API_URL}/auth/google`, {
@@ -200,31 +208,45 @@ export const signInWithGoogle = createAsyncThunk(
 
       // Validate response structure
       if (!response.data || !response.data.success || !response.data.data) {
-        console.error('Invalid Google auth response structure:', response.data);
+        console.error('❌ Invalid Google auth response structure:', response.data);
         return rejectWithValue('Invalid response from server');
       }
       
-      const { token, user: responseUser } = response.data.data;
+      const { token, user: userData } = response.data.data;
       
-      if (!token || !responseUser) {
-        console.error('Missing token or user in Google auth response:', response.data);
+      if (!token || !userData) {
+        console.error('❌ Missing token or user in response:', response.data);
         return rejectWithValue('Invalid response data');
       }
       
       if (typeof window !== 'undefined') {
         localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(responseUser));
+        localStorage.setItem('user', JSON.stringify(userData));
       }
 
+      console.log('✅ Google Sign-In completed successfully');
       return response.data.data;
     } catch (error: any) {
-      console.error('Google Sign-In Error:', error);
+      console.error('❌ Google Sign-In Error:', error);
       
-      // Handle Firebase errors
+      // Handle Firebase errors with helpful messages
       if (error.code === 'auth/popup-closed-by-user') {
         return rejectWithValue('Sign-in popup was closed');
       } else if (error.code === 'auth/cancelled-popup-request') {
         return rejectWithValue('Sign-in was cancelled');
+      } else if (error.code === 'auth/unauthorized-domain') {
+        const currentDomain = typeof window !== 'undefined' ? window.location.hostname : 'unknown';
+        console.error(`\n🚨 UNAUTHORIZED DOMAIN: ${currentDomain}`);
+        console.error(`\nTo fix this:`);
+        console.error(`1. Go to: https://console.firebase.google.com/project/aievent-ebc5f/authentication/settings`);
+        console.error(`2. Scroll to "Authorized domains"`);
+        console.error(`3. Click "Add domain"`);
+        console.error(`4. Add: ${currentDomain}`);
+        console.error(`   OR add wildcard: *.vercel.app (recommended for all Vercel deployments)`);
+        console.error(`\nSee FIREBASE_DOMAIN_FIX.md for detailed instructions.\n`);
+        return rejectWithValue(`This domain (${currentDomain}) is not authorized in Firebase. Please add it to Firebase Console authorized domains. See browser console for instructions.`);
+      } else if (error.code === 'auth/network-request-failed') {
+        return rejectWithValue('Network error. Please check your internet connection.');
       }
       
       return rejectWithValue(error.response?.data?.error || error.message || 'Google Sign-In failed');
